@@ -1,0 +1,39 @@
+{
+  "title": "Switch or Stay?",
+  "voice": "en-US-AriaNeural",
+  "aspect": "vertical",
+  "quality": "m",
+  "scenes": [
+    {
+      "narration": "Here is a famous probability trick. There are three doors. Behind one is a car, behind the other two are goats. You pick door number one.",
+      "steps": [
+        {"do": "title", "text": "Switch or stay?", "color": "yellow"},
+        {"do": "dots", "count": 3, "mark": [0], "mark_color": "orange", "per_row": 3},
+        {"do": "text", "text": "You pick door 1"}
+      ]
+    },
+    {
+      "narration": "Now the host opens another door, and it has a goat. He asks: do you want to switch to the last door? Pause the video and think about it!",
+      "steps": [
+        {"do": "text", "text": "Host opens a goat door", "color": "red"},
+        {"do": "text", "text": "Switch to the last door?", "color": "orange"},
+        {"do": "timer", "secs": 6, "text": "Think about it!"}
+      ]
+    },
+    {
+      "narration": "Yes, you should switch! Your first pick was right only one time in three. So the other door hides the car two times in three.",
+      "steps": [
+        {"do": "arrow", "from": "Stay", "to": "1 in 3", "color": "red"},
+        {"do": "arrow", "from": "Switch", "to": "2 in 3", "color": "green"},
+        {"do": "bars", "values": [33, 67], "labels": ["Stay", "Switch"], "colors": ["red", "green"]}
+      ]
+    },
+    {
+      "narration": "So switching doubles your chances of winning. Follow for more tricky puzzles!",
+      "steps": [
+        {"do": "title", "text": "Switching wins 2x", "color": "green"},
+        {"do": "text", "text": "Follow for more puzzles!", "color": "yellow"}
+      ]
+    }
+  ]
+}

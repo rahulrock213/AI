@@ -1,0 +1,38 @@
+{
+  "title": "The Shortcut",
+  "voice": "en-US-JennyNeural",
+  "aspect": "vertical",
+  "quality": "m",
+  "scenes": [
+    {
+      "narration": "A geometry puzzle. You walk three blocks east, then four blocks north. But there is a diagonal shortcut. How many blocks does the shortcut save?",
+      "steps": [
+        {"do": "title", "text": "How long is the shortcut?", "color": "yellow"},
+        {"do": "shape", "kind": "triangle", "sides": ["3 east", "4 north", "?"], "color": "blue"}
+      ]
+    },
+    {
+      "narration": "Think about it for a moment.",
+      "steps": [
+        {"do": "timer", "secs": 5, "text": "Guess the shortcut!"}
+      ]
+    },
+    {
+      "narration": "The path makes a right angle, so we use Pythagoras. The shortcut squared is three squared plus four squared, which is nine plus sixteen, which is twenty five. So the shortcut is five blocks.",
+      "steps": [
+        {"do": "math", "tex": "c^2 = 3^2 + 4^2", "plain": "c² = 3² + 4²"},
+        {"do": "math", "tex": "c^2 = 9 + 16 = 25", "plain": "c² = 9 + 16 = 25"},
+        {"do": "math", "tex": "c = 5", "plain": "c = 5", "color": "green"},
+        {"do": "box"}
+      ]
+    },
+    {
+      "narration": "Walking the long way is seven blocks, and the shortcut is five. So you save two blocks. Follow for more puzzles!",
+      "steps": [
+        {"do": "numberline", "range": [0, 7], "marks": [{"at": 5, "label": "shortcut", "color": "green"}, {"at": 7, "label": "long way", "color": "red"}]},
+        {"do": "title", "text": "You save 2 blocks!", "color": "green"},
+        {"do": "text", "text": "Follow for more puzzles!", "color": "yellow"}
+      ]
+    }
+  ]
+}

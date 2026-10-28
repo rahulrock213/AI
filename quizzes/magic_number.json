@@ -1,0 +1,43 @@
+{
+  "title": "Magic Number Trick",
+  "voice": "en-GB-SoniaNeural",
+  "aspect": "vertical",
+  "quality": "m",
+  "scenes": [
+    {
+      "narration": "Let me read your mind. Pick any number in your head. Add five. Double it. Subtract four. Divide by two. Finally, subtract the number you started with.",
+      "steps": [
+        {"do": "title", "text": "Mind reading trick", "color": "yellow"},
+        {"do": "text", "text": "Pick any number"},
+        {"do": "text", "text": "Add 5, double it"},
+        {"do": "text", "text": "Subtract 4, halve it"},
+        {"do": "text", "text": "Subtract your number"}
+      ]
+    },
+    {
+      "narration": "Take a moment to work it out.",
+      "steps": [
+        {"do": "timer", "secs": 5, "text": "Do the steps!"}
+      ]
+    },
+    {
+      "narration": "Your answer is three! It works for every number. Try seven. Add five makes twelve. Double is twenty four. Minus four is twenty. Half is ten. Minus seven is three.",
+      "steps": [
+        {"do": "title", "text": "Your answer is 3!", "color": "green"},
+        {"do": "numberline", "range": [0, 14], "marks": [{"at": 7, "label": "start 7", "color": "yellow"}, {"at": 12, "label": "12", "color": "orange"}], "jumps": [[7, 12, "+5"]]},
+        {"do": "arrow", "from": "7", "to": "12", "text": "+5"},
+        {"do": "arrow", "from": "12", "to": "10", "text": "x2, -4, /2", "color": "orange"}
+      ]
+    },
+    {
+      "narration": "Here is why. Call your number x. Adding five and doubling gives two x plus ten. Subtract four to get two x plus six. Halve it to get x plus three. Take away x and only three is left. Follow for more tricks!",
+      "steps": [
+        {"do": "math", "tex": "2(x + 5) - 4 = 2x + 6", "plain": "2(x + 5) - 4 = 2x + 6"},
+        {"do": "math", "tex": "\\frac{2x + 6}{2} = x + 3", "plain": "(2x + 6) / 2 = x + 3"},
+        {"do": "math", "tex": "(x + 3) - x = 3", "plain": "(x + 3) - x = 3", "color": "green"},
+        {"do": "box"},
+        {"do": "text", "text": "Follow for more tricks!", "color": "yellow"}
+      ]
+    }
+  ]
+}

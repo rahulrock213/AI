@@ -1,0 +1,44 @@
+{
+  "title": "Bat and Ball",
+  "voice": "en-US-AndrewNeural",
+  "aspect": "vertical",
+  "quality": "m",
+  "scenes": [
+    {
+      "narration": "Most people get this one wrong. A bat and a ball cost one dollar ten together. The bat costs one dollar more than the ball. How much is the ball?",
+      "steps": [
+        {"do": "title", "text": "90% get this wrong!", "color": "yellow"},
+        {"do": "text", "text": "Bat + Ball = $1.10"},
+        {"do": "text", "text": "Bat = Ball + $1.00"},
+        {"do": "text", "text": "Ball = ?", "color": "orange"}
+      ]
+    },
+    {
+      "narration": "Your brain says ten cents. But check it. If the ball is ten cents, the bat is one dollar ten, and together that is one dollar twenty. Too much!",
+      "steps": [
+        {"do": "text", "text": "Quick guess: 10¢", "color": "red"},
+        {"do": "math", "tex": "0.10 + 1.10 = 1.20", "plain": "0.10 + 1.10 = 1.20", "color": "red"},
+        {"do": "text", "text": "Too much!", "color": "red"}
+      ]
+    },
+    {
+      "narration": "Let the ball cost x. Then the bat costs x plus one. Together, x plus x plus one equals one point one zero. So two x equals ten cents, and x is five cents.",
+      "steps": [
+        {"do": "text", "text": "Let ball = x"},
+        {"do": "math", "tex": "x + (x + 1) = 1.10", "plain": "x + (x + 1) = 1.10"},
+        {"do": "math", "tex": "2x = 0.10", "plain": "2x = 0.10"},
+        {"do": "math", "tex": "x = 0.05", "plain": "x = 0.05", "color": "green"},
+        {"do": "box"}
+      ]
+    },
+    {
+      "narration": "The ball costs five cents. Check: the bat is one oh five, and together that is one ten. Follow for more tricky puzzles!",
+      "steps": [
+        {"do": "title", "text": "Ball = 5¢", "color": "green"},
+        {"do": "text", "text": "Bat = $1.05"},
+        {"do": "text", "text": "Total = $1.10 ✓", "color": "green"},
+        {"do": "text", "text": "Follow for more puzzles!", "color": "yellow"}
+      ]
+    }
+  ]
+}

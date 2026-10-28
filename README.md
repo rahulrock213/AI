@@ -18,3 +18,7 @@ Copy `quizzes/bat_and_ball.json`, change the narration and steps (or ask Claude:
 like bat_and_ball.json for <your question>"). Step types: `title`, `text`, `math`, `box`, `pause`.
 Colors: red, green, yellow, blue, orange, white. `aspect`: `vertical` (Shorts/Reels) or `wide`.
 Change the voice with e.g. `en-IN-NeerjaNeural` or `en-GB-RyanNeural`.
+
+## No terminal at all
+On GitHub open **Actions -> Render quiz video -> Run workflow**, type a quiz file path, then download
+the `quiz-video` file from the finished run.

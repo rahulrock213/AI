@@ -1,2 +1,2 @@
 manim
-edge-tts
+edge-tts>=7.0

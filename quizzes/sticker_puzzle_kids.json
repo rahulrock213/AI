@@ -1,0 +1,55 @@
+{
+  "title": "The Sticker Puzzle",
+  "style": "kids",
+  "aspect": "vertical",
+  "quality": "m",
+  "scenes": [
+    {
+      "narration": "Hi friends! Ready for a super tricky puzzle? Mia and Leo have ten stickers. Ten! Mia has four more stickers than Leo. So... how many stickers does Leo have?",
+      "steps": [
+        {"do": "title", "text": "Sticker Puzzle!", "color": "yellow"},
+        {"do": "things", "kind": "star", "count": 10},
+        {"do": "text", "text": "Mia has 4 MORE than Leo", "color": "pink"},
+        {"do": "text", "text": "How many has Leo?", "color": "orange"}
+      ]
+    },
+    {
+      "narration": "Think, think, think! What do you say?",
+      "steps": [
+        {"do": "timer", "secs": 5, "text": "Think!"}
+      ]
+    },
+    {
+      "narration": "Lots of grown-ups say four. But let's check! If Leo has four, then Mia has four more. That makes eight! Four and eight is twelve. Oh no! That is too many stickers!",
+      "steps": [
+        {"do": "text", "text": "Is it 4?", "color": "red"},
+        {"do": "things", "kind": "star", "count": 12, "per_row": 6, "mark": [4, 5, 6, 7, 8, 9, 10, 11], "mark_color": "pink"},
+        {"do": "text", "text": "4 + 8 = 12", "color": "red"},
+        {"do": "text", "text": "Too many!", "color": "red"}
+      ]
+    },
+    {
+      "narration": "Let's try a trick! Mia's four extra stickers go to the side. Now there are only six stickers left. Let's share them the same. One for Leo, one for Mia. Again, and again. Three for Leo, and three for Mia!",
+      "steps": [
+        {"do": "things", "kind": "star", "count": 10, "mark": [6, 7, 8, 9], "mark_color": "pink"},
+        {"do": "text", "text": "Put Mia's 4 extra aside", "color": "pink"},
+        {"do": "things", "kind": "star", "count": 6, "per_row": 3, "mark": [0, 2, 4], "mark_color": "blue"},
+        {"do": "text", "text": "Share the 6 equally: 3 and 3", "color": "teal"}
+      ]
+    },
+    {
+      "narration": "So Leo has three stickers! And Mia has her three, plus four extra. That is seven! Check it. Three and seven makes ten. Yay! You did it!",
+      "steps": [
+        {"do": "title", "text": "Leo has 3!", "color": "green", "celebrate": true},
+        {"do": "text", "text": "Mia: 3 + 4 = 7", "color": "pink"},
+        {"do": "text", "text": "3 + 7 = 10  ✓", "color": "green"}
+      ]
+    },
+    {
+      "narration": "Great thinking! Follow me for more fun puzzles. Bye bye!",
+      "steps": [
+        {"do": "title", "text": "Follow for more!", "color": "yellow", "celebrate": true}
+      ]
+    }
+  ]
+}

@@ -2,9 +2,11 @@
 import json
 import math
 import os
+import random
 import shutil
 
 from manim import *
+from manim.utils.rate_functions import ease_out_back
 
 SPEC = json.load(open(os.environ["QUIZ_SPEC"]))
 VERTICAL = SPEC.get("aspect", "vertical") == "vertical"
@@ -12,17 +14,23 @@ if VERTICAL:
     config.pixel_width, config.pixel_height = 1080, 1920
     config.frame_width, config.frame_height = 6.75, 12.0
 HAS_LATEX = shutil.which("latex") is not None
+KIDS = SPEC.get("style") == "kids"  # mascot, bright background, sound effects, bouncy pop-ins
 COLORS = {"red": RED, "green": GREEN, "yellow": YELLOW, "blue": BLUE_C,
-          "orange": ORANGE, "white": WHITE}
+          "orange": ORANGE, "white": WHITE, "pink": "#ff7ac6", "purple": "#b388ff",
+          "teal": "#2ec4b6"}
 SIZE = {"title": 52, "text": 34, "math": 44}
-SIZE = {k: v * (1.15 if VERTICAL else 1.25) for k, v in SIZE.items()}
-WIDTH = config.frame_width - 0.8
+SIZE = {k: v * ((1.35 if KIDS else 1.15) if VERTICAL else 1.25) for k, v in SIZE.items()}
+# The mascot takes a band at the top (vertical) or a column on the left (wide).
+MASCOT_H = 2.7 if KIDS and VERTICAL else 0
+SIDE = 2.6 if KIDS and not VERTICAL else 0
+WIDTH = config.frame_width - 0.8 - SIDE
 # Content lives above the caption strip at the bottom of the frame.
 CAPTIONS = SPEC.get("captions", True)
 STRIP = (2.8 if VERTICAL else 1.5) if CAPTIONS else 0.4
-REGION_H = config.frame_height - STRIP - 0.4
-REGION_Y = (STRIP - 0.4) / 2
-VIS_H = 3.2 if VERTICAL else 2.4  # max height of a drawn visual
+REGION_H = config.frame_height - STRIP - 0.4 - MASCOT_H
+REGION_X = SIDE / 2
+REGION_Y = (STRIP - 0.4 - MASCOT_H) / 2
+VIS_H = (4.2 if KIDS else 3.2) if VERTICAL else 2.4  # max height of a drawn visual
 
 
 def col(step, key="color", default="white"):
@@ -151,6 +159,47 @@ def make_timer(step):
     return group, secs
 
 
+def make_thing(kind):
+    """One small picture-object, drawn from shapes (no emoji fonts needed)."""
+    if kind == "apple":
+        body = Circle(radius=0.3, color="#ef476f", fill_opacity=1, stroke_width=2)
+        stem = Line([0, 0.27, 0], [0, 0.42, 0], color="#7b4a1e", stroke_width=3)
+        leaf = Ellipse(width=0.2, height=0.1, color="#52b788", fill_opacity=1, stroke_width=0)
+        return VGroup(body, stem, leaf.rotate(PI / 6).move_to([0.1, 0.38, 0]))
+    if kind == "coin":
+        return VGroup(Circle(radius=0.3, color="#ffd23f", fill_opacity=1, stroke_width=2),
+                      Circle(radius=0.2, color="#e0a800", stroke_width=3))
+    if kind == "ball":
+        return VGroup(Circle(radius=0.3, color="#4cc9f0", fill_opacity=1, stroke_width=2),
+                      Circle(radius=0.07, color=WHITE, fill_opacity=0.9, stroke_width=0).move_to([-0.1, 0.12, 0]))
+    if kind == "cookie":
+        cookie = VGroup(Circle(radius=0.3, color="#d9a066", fill_opacity=1, stroke_width=2))
+        for x, y in [(-0.1, 0.1), (0.12, 0.05), (0, -0.14), (-0.14, -0.08)]:
+            cookie.add(Dot([x, y, 0], radius=0.045, color="#5a3418"))
+        return cookie
+    return Star(n=5, outer_radius=0.34, inner_radius=0.15, color="#ffd23f", fill_opacity=1, stroke_width=2)
+
+
+def make_things(step):
+    """Counting picture: `count` objects, some ringed (mark), faded (dim) or crossed out (cross)."""
+    kind, count = step.get("kind", "star"), step["count"]
+    marked, dimmed, crossed = (set(step.get(k, [])) for k in ("mark", "dim", "cross"))
+    hot = col(step, "mark_color", "red")
+    things = VGroup()
+    for i in range(count):
+        t = make_thing(kind)
+        if i in marked:
+            t.add(Circle(radius=0.42, color=hot, stroke_width=4))
+        if i in crossed:
+            t.add(Line([-0.3, 0.3, 0], [0.3, -0.3, 0], color=RED, stroke_width=6),
+                  Line([-0.3, -0.3, 0], [0.3, 0.3, 0], color=RED, stroke_width=6))
+        if i in dimmed:
+            t.set_opacity(0.25)
+        things.add(t)
+    things.arrange_in_grid(cols=min(step.get("per_row", 5), count), buff=0.3)
+    return things
+
+
 def make(step):
     kind = step["do"]
     color = col(step)
@@ -167,13 +216,95 @@ def make(step):
 
 
 VISUALS = {"shape": make_shape, "bars": make_bars, "numberline": make_numberline,
-           "dots": make_dots, "arrow": make_arrow}
+           "dots": make_dots, "arrow": make_arrow, "things": make_things}
+
+
+def build_background():
+    """Gradient backdrop with soft bubbles drifting upward."""
+    w, h = config.frame_width + 0.4, config.frame_height + 0.4
+    bg = Rectangle(width=w, height=h, stroke_width=0)
+    bg.set_fill(["#1d2b64", "#5b2a9b"], opacity=1)
+    bg.set_z_index(-20)
+    rng = random.Random(7)
+    bubbles = VGroup()
+    speeds = []
+    for _ in range(12):
+        r = rng.uniform(0.15, 0.5)
+        b = Circle(radius=r, color=rng.choice(["#ff7ac6", "#4cc9f0", "#ffd23f", "#b388ff"]),
+                   fill_opacity=rng.uniform(0.08, 0.2), stroke_width=0)
+        b.move_to([rng.uniform(-w / 2, w / 2), rng.uniform(-h / 2, h / 2), 0])
+        bubbles.add(b)
+        speeds.append(rng.uniform(0.15, 0.4))
+
+    def drift(group, dt):
+        for b, v in zip(group, speeds):
+            b.shift(UP * v * dt)
+            if b.get_bottom()[1] > h / 2:
+                b.move_to([b.get_x(), -h / 2 - b.height / 2, 0])
+    bubbles.add_updater(drift)
+    bubbles.set_z_index(-10)
+    return VGroup(bg, bubbles)
+
+
+def build_buddy():
+    """A round friendly mascot. Returns (group, mouth, lids, open-mouth, closed-mouth)."""
+    skin, dark = "#ffcf33", "#4a2c0a"
+    parts = VGroup()
+    for x in (-0.6, 0.6):
+        parts.add(Circle(radius=0.25, color="#ffb703", fill_color=skin, fill_opacity=1,
+                         stroke_width=3).move_to([x, 0.68, 0]))
+    parts.add(Circle(radius=0.8, color="#ffb703", fill_color=skin, fill_opacity=1, stroke_width=4))
+    for x in (-0.5, 0.5):
+        parts.add(Circle(radius=0.13, color="#ff7ac6", fill_opacity=0.55, stroke_width=0).move_to([x, -0.1, 0]))
+    lids = VGroup()
+    for x in (-0.3, 0.3):
+        parts.add(Circle(radius=0.19, color=WHITE, fill_opacity=1, stroke_width=0).move_to([x, 0.18, 0]))
+        parts.add(Circle(radius=0.1, color=dark, fill_opacity=1, stroke_width=0).move_to([x, 0.16, 0]))
+        parts.add(Circle(radius=0.035, color=WHITE, fill_opacity=1, stroke_width=0).move_to([x + 0.04, 0.2, 0]))
+        lid = Circle(radius=0.21, color=skin, fill_opacity=0, stroke_width=0).move_to([x, 0.18, 0])
+        lids.add(lid)
+        parts.add(lid)
+    closed = Arc(radius=0.24, start_angle=PI * 1.15, angle=PI * 0.7, color=dark, stroke_width=4)
+    opened = Ellipse(width=0.34, height=0.3, color="#7a1d2b", fill_opacity=1, stroke_width=3)
+    mouth = closed.copy().move_to([0, -0.28, 0])
+    parts.add(mouth)
+    return parts, mouth, lids, opened, closed
+
+
+def confetti(scene):
+    """A burst of falling paper bits for the big reveal."""
+    rng = random.Random(3)
+    w, h = config.frame_width, config.frame_height
+    pieces, vel = VGroup(), []
+    for _ in range(50):
+        p = Rectangle(width=0.16, height=0.09, color=rng.choice(["#ff7ac6", "#4cc9f0", "#ffd23f", "#52b788", "#ef476f"]),
+                      fill_opacity=1, stroke_width=0)
+        p.rotate(rng.uniform(0, TAU)).move_to([rng.uniform(-w / 2, w / 2), h / 2 + rng.uniform(0, 1.5), 0])
+        pieces.add(p)
+        vel.append((rng.uniform(-0.4, 0.4), rng.uniform(-3.2, -5.5), rng.uniform(-5, 5)))
+    age = [0.0]
+
+    def fall(group, dt):
+        age[0] += dt
+        for p, (vx, vy, spin) in zip(group, vel):
+            p.shift([vx * dt, vy * dt, 0])
+            p.rotate(spin * dt)
+        if age[0] > 3.5:
+            group.clear_updaters()
+            scene.remove(group)
+    pieces.add_updater(fall)
+    pieces.set_z_index(30)
+    scene.add(pieces)
 
 
 class QuizScene(Scene):
     def wait_until(self, t):
         if t - self.time > 0.05:
             self.wait(t - self.time)
+
+    def sfx(self, name):
+        if KIDS:
+            self.events.append((self.time, name))
 
     def countdown(self, group, secs):
         head, number, back, bar = group
@@ -184,16 +315,55 @@ class QuizScene(Scene):
         bar.add_updater(lambda b: b.stretch_to_fit_width(
             max(0.01, full * tracker.get_value() / secs)).align_to(back, LEFT))
         self.play(FadeIn(group), run_time=0.4)
-        self.play(tracker.animate.set_value(0), run_time=secs, rate_func=linear)
+        left = secs
+        while left > 0:  # one tick per second
+            self.sfx("tick")
+            chunk = min(1, left)
+            left -= chunk
+            self.play(tracker.animate.set_value(left), run_time=chunk, rate_func=linear)
+        self.sfx("ding")
         number.clear_updaters()
         bar.clear_updaters()
 
+    def add_buddy(self):
+        """Mascot that bobs, blinks, hops on celebrations and moves its mouth while narration plays."""
+        buddy, mouth, lids, opened, closed = build_buddy()
+        if VERTICAL:
+            base = np.array([0, config.frame_height / 2 - 1.6, 0])
+            buddy.scale(1.3)
+        else:
+            base = np.array([-config.frame_width / 2 + 1.5, 0.6, 0])
+            buddy.scale(1.25)
+        buddy.move_to(base)
+        self.windows, self.hop = [], -9.0
+        shown = [None]
+
+        def alive(m):
+            t = self.time
+            hop = 0.45 * abs(math.sin(2 * PI * (t - self.hop) / 0.9)) if 0 <= t - self.hop < 0.9 else 0
+            m.move_to(base + UP * (0.05 * math.sin(t * 3) + hop))
+            talking = any(a <= t <= b for a, b in self.windows) and math.sin(t * 18) > -0.3
+            if talking != shown[0]:
+                shown[0] = talking
+                mouth.become((opened if talking else closed).copy().move_to(mouth.get_center()))
+            for lid in lids:
+                lid.set_fill(opacity=1 if t % 3.4 < 0.13 else 0)
+        buddy.set_z_index(5)
+        self.play(GrowFromCenter(buddy), run_time=0.6, rate_func=ease_out_back)
+        buddy.add_updater(alive)
+
     def construct(self):
         self.camera.background_color = "#14161f"
+        self.events = []  # (time, sound effect name), mixed in by make_video.py
+        if KIDS:
+            self.add(build_background())
+            self.add_buddy()
         starts = []
         for sc in SPEC["scenes"]:
             start = self.time
             starts.append(start)
+            if KIDS:
+                self.windows += [(start + a, start + b + 0.1) for a, b, _ in sc["sentences"]]
             avail = sc["duration"] - 0.4
             shown = [s for s in sc["steps"] if s["do"] != "box"]
             items, extras = VGroup(), VGroup()
@@ -222,9 +392,17 @@ class QuizScene(Scene):
                 items.arrange(DOWN, buff=0.45)
                 if items.height > REGION_H:
                     items.scale_to_fit_height(REGION_H)
-                items.move_to([0, REGION_Y, 0])
+                items.move_to([REGION_X, REGION_Y, 0])
+                if kind != "timer" and step.get("sfx", "pop") != "none":
+                    self.sfx(step.get("sfx", "pop"))
+                if step.get("celebrate"):
+                    self.sfx("tada")
+                    self.hop = self.time
+                    confetti(self)
                 if kind == "timer":
                     self.countdown(m, secs)
+                elif KIDS:  # bouncy pop-in
+                    self.play(GrowFromCenter(m), run_time=step.get("secs", 0.7), rate_func=ease_out_back)
                 elif kind in ("title", *VISUALS):
                     self.play(FadeIn(m, shift=UP * 0.3), run_time=step.get("secs", 1.0))
                 else:
@@ -232,4 +410,4 @@ class QuizScene(Scene):
             self.wait_until(start + sc["duration"])
             self.play(FadeOut(VGroup(items, extras)), run_time=0.4)
         with open(os.environ["QUIZ_TIMES"], "w") as f:
-            json.dump({"starts": starts, "total": self.time}, f)
+            json.dump({"starts": starts, "total": self.time, "events": self.events}, f)

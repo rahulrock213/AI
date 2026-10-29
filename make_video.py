@@ -33,6 +33,28 @@ def write_captions(spec, starts, path, size):
     path.write_text(head + "\n".join(lines) + "\n")
 
 
+def make_sfx(work):
+    """Tiny synthesized sound effects (no downloads): pop, tick, ding, tada."""
+    def tone(freq, secs, delay=0.0, vol=0.5):
+        return (f"sine=f={freq}:d={secs}", f"afade=t=out:st={secs * 0.3:.2f}:d={secs * 0.7:.2f},"
+                f"volume={vol},adelay={round(delay * 1000)}:all=1")
+    sounds = {"pop": [tone(520, 0.14), tone(780, 0.1, 0.03, 0.3)],
+              "tick": [tone(1000, 0.05, 0, 0.35)],
+              "ding": [tone(988, 0.5, 0, 0.5), tone(1319, 0.7, 0.12, 0.4)],
+              "tada": [tone(523, 0.2, 0), tone(659, 0.2, 0.14), tone(784, 0.2, 0.28), tone(1047, 0.8, 0.42)]}
+    paths = {}
+    for name, notes in sounds.items():
+        path = work / f"sfx_{name}.wav"
+        cmd = ["ffmpeg", "-y", "-loglevel", "error"]
+        for src, _ in notes:
+            cmd += ["-f", "lavfi", "-i", src]
+        chains = [f"[{i}:a]{f}[n{i}]" for i, (_, f) in enumerate(notes)]
+        mixed = "".join(f"[n{i}]" for i in range(len(notes))) + f"amix=inputs={len(notes)}:normalize=0[o]"
+        subprocess.run(cmd + ["-filter_complex", ";".join(chains + [mixed]), "-map", "[o]", str(path)], check=True)
+        paths[name] = path.resolve()
+    return paths
+
+
 def mix(spec, video, times, work, out):
     """Narration (+ optional quiet music) and captions onto the Manim video."""
     total = duration(video)
@@ -43,13 +65,20 @@ def mix(spec, video, times, work, out):
     parts = []
     for i, start in enumerate(times["starts"]):
         parts.append(f"[{i + 1}:a]adelay={round(start * 1000)}:all=1[a{i}]")
-    parts.append("".join(f"[a{i}]" for i in range(n)) +
-                 f"amix=inputs={n}:normalize=0:duration=longest[voice]")
+    labels = [f"[a{i}]" for i in range(n)]
+    events = times.get("events", [])
+    if events:  # sound effects ride along with the voice
+        paths = make_sfx(work)
+        for j, (t, name) in enumerate(events):
+            cmd += ["-i", str(paths[name])]
+            parts.append(f"[{n + 1 + j}:a]adelay={round(t * 1000)}:all=1,volume={spec.get('sfx_volume', 0.5)}[s{j}]")
+            labels.append(f"[s{j}]")
+    parts.append("".join(labels) + f"amix=inputs={len(labels)}:normalize=0:duration=longest[voice]")
     music = spec.get("music")
     if music and Path(music).exists():
         cmd += ["-stream_loop", "-1", "-i", str(Path(music).resolve())]
         vol = spec.get("music_volume", 0.12)
-        parts.append(f"[{n + 1}:a]volume={vol},atrim=0:{total:.2f},afade=t=out:st={total - 2:.2f}:d=2[bg]")
+        parts.append(f"[{n + 1 + len(events)}:a]volume={vol},atrim=0:{total:.2f},afade=t=out:st={total - 2:.2f}:d=2[bg]")
         parts.append("[voice][bg]amix=inputs=2:normalize=0:duration=first[aud]")
     else:
         if music:
@@ -84,11 +113,14 @@ def main(path):
     name = Path(path).stem
     work = Path("build") / name
     work.mkdir(parents=True, exist_ok=True)
-    voice = spec.get("voice", "en-US-AndrewNeural")
+    kids = spec.get("style") == "kids"
+    voice = spec.get("voice", "en-US-AnaNeural" if kids else "en-US-AndrewNeural")
+    rate = spec.get("rate", "-8%" if kids else "+0%")  # kids: a touch slower
+    pitch = spec.get("pitch", "+0Hz")
     for i, sc in enumerate(spec["scenes"]):
         audio = work / f"scene{i}.mp3"
         sc["audio"] = str(audio.resolve())
-        secs, sc["sentences"] = speak(sc["narration"], voice, audio)
+        secs, sc["sentences"] = speak(sc["narration"], voice, audio, rate, pitch)
         sc["duration"] = secs + 0.4
     resolved = work / "spec.json"
     resolved.write_text(json.dumps(spec))

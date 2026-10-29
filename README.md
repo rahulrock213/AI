@@ -15,7 +15,20 @@ In the terminal:
     python make_video.py quizzes/bat_and_ball.json
 
 The video appears in `build/bat_and_ball.mp4`. Right-click it in the file list -> Download.
-Examples: `bat_and_ball`, `monty_hall` (probability), `shortcut` (geometry), `magic_number` (number trick).
+Examples: `sticker_puzzle_kids` (kids style), `bat_and_ball`, `monty_hall` (probability), `shortcut` (geometry), `magic_number` (number trick).
+
+## Kids style (for 5-year-olds)
+Add `"style": "kids"` to a quiz file (see `quizzes/sticker_puzzle_kids.json`). You get:
+- a friendly mascot who blinks, bobs and moves its mouth while the voice talks, and hops on celebrations
+- a child-like voice (`en-US-AnaNeural`, a little slower) - change with `voice`, `rate` (e.g. `"-15%"`), `pitch` (e.g. `"+10Hz"`)
+- a colourful gradient background with floating bubbles, bouncy pop-in animations
+- sound effects: pop on every new item, a tick for each second of the timer, ding, and a "tada"
+  (turn one off per step with `"sfx": "none"`; loudness with `"sfx_volume"`, default `0.5`)
+- `"celebrate": true` on any step fires confetti + tada + a mascot hop
+- a `things` picture type (below) so kids can count instead of reading algebra
+
+Script tips for little kids: short sentences, a tiny story with names, pictures to count, one idea per scene,
+and say the numbers in words ("four and eight is twelve").
 
 ## Make your own quiz (easiest way)
 1. Run `python new_quiz.py`
@@ -56,6 +69,8 @@ Visuals (new):
   dots with labels, plus optional curved arrows between numbers
 - `{"do": "dots", "count": 10, "mark": [0, 1], "per_row": 5, "color": "blue", "mark_color": "red"}` row of circles with some highlighted
 - `{"do": "arrow", "from": "Switch", "to": "2 in 3", "text": "optional note", "color": "green"}` two labeled boxes joined by an arrow
+- `{"do": "things", "kind": "star|apple|coin|ball|cookie", "count": 10, "per_row": 5, "mark": [6, 7], "mark_color": "pink", "dim": [0], "cross": [1]}`
+  counting pictures: ringed (`mark`), faded (`dim`) or crossed-out (`cross`) items by position
 - `{"do": "timer", "secs": 5, "text": "Think about it!"}` countdown bar with big seconds, so viewers can guess before the answer
 
 ## Background music

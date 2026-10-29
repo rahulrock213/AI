@@ -23,25 +23,32 @@ def main():
     if aspect not in ("vertical", "wide"):
         raise SystemExit("Shape must be vertical or wide.")
 
+    kids = ask("Style: kids (mascot, kid voice, sounds, confetti) or classic", "kids") == "kids"
+    hi = "Hi friends! Ready for a super tricky puzzle? " if kids else "Can you solve this? "
     scenes = [{
-        "narration": f"Can you solve this? {question}",
+        "narration": f"{hi}{question}",
         "steps": [{"do": "title", "text": title, "color": "yellow"},
                   {"do": "text", "text": question}]}]
     scenes.append({
-        "narration": "Pause the video and think about it!",
+        "narration": "Think, think, think! What do you say?" if kids else "Pause the video and think about it!",
         "steps": [{"do": "timer", "secs": 5, "text": "Think about it!"}]})
     if wrong:
         scenes.append({
-            "narration": f"Many people say {wrong}. But that is not right!",
+            "narration": f"Lots of grown-ups say {wrong}. But let's check! Oh no, that is not right!"
+            if kids else f"Many people say {wrong}. But that is not right!",
             "steps": [{"do": "text", "text": f"Common guess: {wrong}", "color": "red"},
                       {"do": "text", "text": "Not quite!", "color": "red"}]})
     scenes.append({
-        "narration": f"The answer is: {answer}. Follow for more tricky puzzles!",
-        "steps": [{"do": "title", "text": answer, "color": "green"},
+        "narration": (f"The answer is: {answer}. Yay! You did it! Follow me for more fun puzzles. Bye bye!"
+                      if kids else f"The answer is: {answer}. Follow for more tricky puzzles!"),
+        "steps": [{"do": "title", "text": answer, "color": "green", "celebrate": kids},
                   {"do": "text", "text": "Follow for more puzzles!", "color": "yellow"}]})
 
-    spec = {"title": title, "voice": "en-US-AndrewNeural", "aspect": aspect,
-            "quality": "m", "scenes": scenes}
+    spec = {"title": title, "aspect": aspect, "quality": "m", "scenes": scenes}
+    if kids:
+        spec["style"] = "kids"
+    else:
+        spec["voice"] = "en-US-AndrewNeural"
     path = Path("quizzes") / f"{name}.json"
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(spec, indent=2, ensure_ascii=False) + "\n")

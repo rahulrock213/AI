@@ -38,9 +38,9 @@ def _sentences(text, secs):
     return out
 
 
-async def _save(text, voice, path):
+async def _save(text, voice, path, rate, pitch):
     """Save the voice audio and return the (start, end, sentence) timings edge-tts reports."""
-    comm = edge_tts.Communicate(text, voice, boundary="SentenceBoundary")
+    comm = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch, boundary="SentenceBoundary")
     sentences = []
     with open(path, "wb") as f:
         async for chunk in comm.stream():
@@ -52,11 +52,11 @@ async def _save(text, voice, path):
     return sentences
 
 
-def speak(text, voice, path):
+def speak(text, voice, path, rate="+0%", pitch="+0Hz"):
     """Write narration audio to path. Returns (audio seconds, [(start, end, sentence), ...])."""
     path = Path(path)
     try:
-        sentences = asyncio.run(_save(text, voice, path))
+        sentences = asyncio.run(_save(text, voice, path, rate, pitch))
         if path.stat().st_size == 0:
             raise RuntimeError("empty audio")
     except Exception as e:  # offline / blocked network
